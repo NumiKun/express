@@ -1,40 +1,39 @@
 const express = require('express')
 const app = express()
-
-var bodyParser = require('body-parser')
-var cors = require('cors')
-
-var jsonParser = bodyParser.json()
-
-var urlencodeParser = bodyParser.urlencoded({ extended: false })
+const cors = require('cors')
 const port = 3000
 
+app.use(express.json())
 app.use(cors())
-app.use(jsonParser);
-app.use(urlencodeParser);
 
 app.get('/', (req, res) => {
-  res.json('Hello World!')
+  res.json('website b')
 });
 
-app.post('/login', (req, res) => {
-    const username = 'newjeans'
-    const password = '12345678'
-
-    // check if username is valid
-    if (req.body.username !== username) {
-        res.json({ status: 'error, username not found' })
-        return
+app.get('/trigger-webhook-event', async (req, res) => {
+  try {
+    const data = {
+      secret: "secret123",
+      event: 'event a'
     }
 
-    // check if password is valid
-    if (req.body.password !== password) {
-        res.json({ status: 'error, wrong password' })
-        return
+    const response = await fetch('https://localhost:3000/github-event', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+      res.json('Event triggered successfully');
+    } else {
+      res.status(response.status).json('Failed to trigger event');
     }
-
-    res.json({ status: 'success' })
-
+  } catch (error) {
+    console.error(error);
+    res.status(500).json('Internal Server Error');
+  }
 });
 
 app.listen(port, () => {
